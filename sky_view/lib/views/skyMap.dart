@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -18,17 +19,11 @@ class SkyMap extends StatefulWidget {
 class _SkyMapState extends State<SkyMap> {
   Map<String, dynamic>? result;
   DateTime? _selectedDate;
-
-  late WebViewController controller;
-
+  @override
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted);
-
     _loadPositionData(_selectedDate!);
   }
 
@@ -38,10 +33,10 @@ class _SkyMapState extends State<SkyMap> {
         .toList();
     final positionData =
         await GetPositionConstructor.getPosition(dataList, date, context);
+    // print('Position data received: $positionData');
     if (positionData != null) {
       setState(() {
         result = positionData;
-        controller.loadRequest(Uri.parse(result!['image_url']));
       });
     } else {
       setState(() {
@@ -94,7 +89,8 @@ class _SkyMapState extends State<SkyMap> {
       bottom: true,
       top: true,
       child: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 3, 36, 92),
+        backgroundColor:
+            kIsWeb ? Colors.white : const Color.fromARGB(255, 3, 36, 92),
         body: Center(
           child: Container(
             width: customWidth,

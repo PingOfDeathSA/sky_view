@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sky_view/model/get-postion-model.dart';
@@ -8,8 +9,14 @@ import 'package:xml/xml.dart';
 class GetPositionConstructor {
   static Future<Map<String, String>?> getRaAndDec(
       String astrologicalName, BuildContext context) async {
-    final url =
-        Uri.parse("http://server2.sky-map.org/search?star=$astrologicalName");
+    final originalUrl =
+        Uri.parse("https://server2.sky-map.org/search?star=$astrologicalName");
+
+    final url = kIsWeb
+        ? Uri.parse(
+            'http://localhost:3000/stars?url=${Uri.encodeComponent(originalUrl.toString())}')
+        : originalUrl;
+
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -26,7 +33,7 @@ class GetPositionConstructor {
           : null;
 
       if (raElement == null || decElement == null) {
-        print('astrological sign not found for $astrologicalName');
+        // print('astrological sign not found for $astrologicalName');
         showMyDialog(context);
         return null;
       }
@@ -38,7 +45,7 @@ class GetPositionConstructor {
       };
     } else {
       showMyDialog(context);
-      print('error: ${response.statusCode}');
+      // print('error: ${response.statusCode}');
       return null;
     }
   }
@@ -72,14 +79,18 @@ class GetPositionConstructor {
       if (isInRange) {
         final raDec = await getRaAndDec(data[i].name, context);
         if (raDec == null) {
-          // print("Failed to get RA and DEC for ${data[i].name}");
           continue;
         }
         final monthName = DateFormat('MMMM').format(now);
+
         final imageUrl =
             'http://server2.sky-map.org/map?type=PART&w=1200&h=1000&angle=${raDec['angle']}&ra=${raDec['ra']}&de=${raDec['dec']}&rotation=0&mag=7.5&max_stars=100000&zoom=8&borders=0&border_color=400000&show_grid=0&grid_color=404040&grid_color_zero=808080&grid_lines_width=1&grid_ra_step=1&grid_de_step=1&show_const_lines=1&constellation_lines_color=006000&constellation_lines_width=1&language=EN&show_const_names=1&constellation_names_color=006000&const_name_font_type=PLAIN&const_name_font_name=SanSerif&const_name_font_size=15&show_const_boundaries=1&constellation_boundaries_color=000060&constellation_boundaries_width=1&background_color=1&output=1';
+
+        final proxyUrl =
+            'http://localhost:3000/proxy?url=${Uri.encodeComponent(imageUrl)}';
+
         final currentPositionData = {
-          'image_url': imageUrl,
+          'image_url': kIsWeb ? proxyUrl : imageUrl,
           'name': data[i].name,
           'start_date': data[i].start_date,
           'end_date': data[i].end_date,
@@ -88,7 +99,6 @@ class GetPositionConstructor {
           'de': raDec['dec'],
           'current_month': monthName,
         };
-        // print("Today's position is $currentPositionData");
         return currentPositionData;
       }
     }

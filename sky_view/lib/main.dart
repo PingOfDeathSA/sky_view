@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: '',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
         home: Scaffold(body: SkyMap()));
